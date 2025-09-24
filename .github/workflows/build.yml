@@ -45,17 +45,35 @@ jobs:
         run: |
           bun run build_registries.js
 
-      - name: Build project
+      - name: Build project (Cosmopolitan)
         run: |
           cosmocc src/*.c -O3 -Iinclude -o bareiron.exe
+
+      - name: Build project (Linux)
+        run: |
+          gcc src/*.c -O3 -Iinclude -o bareiron
 
       - name: Upload release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest
           name: Latest build
-          body: "This is a rolling release of bareiron, compiled from the latest commit on the main branch.\n\nThe executable (`bareiron.exe`) is a Cosmopolitan-built polyglot, and should run on Windows and Linux (and Mac?), despite the file extension."
-          files: bareiron.exe
+          body: "This is a rolling release of bareiron, compiled from the latest commit on the main branch.\n\nThe executable (`bareiron.exe`) is a Cosmopolitan-built polyglot, and should run on Windows and Linux (and Mac?), despite the file extension.\n\nA native Linux executable (`bareiron`) is also provided."
+          files: |
+            bareiron.exe
+            bareiron
           prerelease: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  docker-publish:
+    needs: build
+    uses: nushankodikara/reusable-workflows/.github/workflows/docker-publish.yaml@main
+    with:
+      docker_image_and_tag: nushankodi/bareiron:latest
+      docker_username: nushankodi
+      context: .
+      dockerfile: ./Dockerfile
+      platforms: linux/amd64,linux/arm64
+    secrets:
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}

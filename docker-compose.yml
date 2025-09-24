@@ -1,0 +1,7 @@
+services:
+  minecraft-server:
+    build: .
+    ports:
+      - "25565:25565"
+    # volumes:
+    #   - ./world.bin:/app/world.bin
